@@ -109,10 +109,11 @@ struct RecordingView: View {
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Song.self, configurations: config)
-    let song = Song(title: "Preview Song")
-    container.mainContext.insert(song)
+    let container = PersistenceController.preview.container
+    let context = container.mainContext
+    // Fetch the sample song created in PersistenceController.preview
+    let descriptor = FetchDescriptor<Song>()
+    let song = (try? context.fetch(descriptor).first) ?? Song(title: "Fallback Song")
     
     return RecordingView(song: song)
         .modelContainer(container)

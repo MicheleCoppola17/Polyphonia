@@ -43,7 +43,8 @@ struct SongDetailView: View {
                         
                         VStack(alignment: .leading) {
                             Text(idea.title)
-                                .font(.headline)
+                                .font(.title2)
+                                .bold()
                             Text(idea.createdAt, format: .dateTime.month().day().hour().minute())
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -75,19 +76,38 @@ struct SongDetailView: View {
         .sheet(isPresented: $viewModel.isPresentingRecording) {
             RecordingView(song: viewModel.song)
         }
+        .overlay(alignment: .bottom) {
+            if let error = playerService.errorMessage {
+                Text(error)
+                    .foregroundStyle(.white)
+                    .padding()
+                    .background(Color.red.cornerRadius(8))
+                    .padding()
+                    .onAppear {
+                        // Auto-dismiss after 3 seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            if playerService.errorMessage == error {
+                                playerService.errorMessage = nil
+                            }
+                        }
+                    }
+            }
+        }
     }
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Song.self, configurations: config)
-    let song = Song(title: "Preview Song")
-    container.mainContext.insert(song)
+    let container = PersistenceController.preview.container
+    let context = container.mainContext
+    let descriptor = FetchDescriptor<Song>()
+    let song = (try? context.fetch(descriptor).first) ?? Song(title: "Fallback Song")
     
-    // Add dummy audio idea
-    let idea = AudioIdea(title: "Riff 1", url: URL(fileURLWithPath: "/dev/null"))
-    idea.song = song
-    container.mainContext.insert(idea)
+    // Add dummy audio idea for preview if none exists
+    if song.audioIdeas.isEmpty {
+        let idea = AudioIdea(title: "Riff 1", url: URL(fileURLWithPath: "/dev/null"))
+        idea.song = song
+        context.insert(idea)
+    }
     
     return NavigationStack {
         SongDetailView(song: song)
