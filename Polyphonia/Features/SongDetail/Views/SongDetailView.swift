@@ -11,7 +11,6 @@ import SwiftUI
 struct SongDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: SongDetailViewModel
-    // Observe the player service explicitly to trigger view updates
     @ObservedObject private var playerService: AudioPlayerService
     
     init(song: Song) {
@@ -21,49 +20,55 @@ struct SongDetailView: View {
     }
     
     var body: some View {
-        List {
-            if viewModel.sortedAudioIdeas.isEmpty {
-                ContentUnavailableView(
-                    "No Ideas Yet",
-                    systemImage: "music.mic",
-                    description: Text("Tap + to record your first idea.")
-                )
-                .listRowSeparator(.hidden)
-            } else {
-                ForEach(viewModel.sortedAudioIdeas) { idea in
-                    HStack {
-                        Button {
-                            viewModel.togglePlayback(for: idea)
-                        } label: {
-                            Image(systemName: viewModel.isPlaying(idea: idea) ? "pause.circle.fill" : "play.circle.fill")
-                                .font(.system(size: 32))
-                                .foregroundStyle(.blue)
-                        }
-                        .buttonStyle(.plain)
-                        
-                        VStack(alignment: .leading) {
-                            Text(idea.title)
-                                .font(.title2)
-                                .bold()
-                            Text(idea.createdAt, format: .dateTime.month().day().hour().minute())
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        Spacer()
+        ScrollView {
+            ZStack(alignment: .leading) {
+                // Vertical Timeline Line
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: 2)
+                    .padding(.leading, 21) // Center of the 12pt dot + padding
+                    .padding(.top, 80) // Offset for header
+                
+                VStack(alignment: .leading, spacing: 24) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(viewModel.song.title)
+                            .font(.system(size: 34, weight: .bold))
+                        Text("\(viewModel.sortedAudioIdeas.count) takes")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
-                    .padding(.vertical, 4)
-                }
-                .onDelete { indexSet in
-                    for index in indexSet {
-                        let idea = viewModel.sortedAudioIdeas[index]
-                        viewModel.deleteAudioIdea(idea, modelContext: modelContext)
+                    .padding(.leading, 44) // Align with content card
+                    .padding(.top, 20)
+                    
+                    if viewModel.sortedAudioIdeas.isEmpty {
+                        ContentUnavailableView(
+                            "No Ideas Yet",
+                            systemImage: "music.mic",
+                            description: Text("Tap + to record your first idea.")
+                        )
+                        .padding(.top, 40)
+                    } else {
+                        LazyVStack(spacing: 24) {
+                            ForEach(viewModel.sortedAudioIdeas) { idea in
+                                TimelineRow(idea: idea, isPlaying: viewModel.isPlaying(idea: idea)) {
+                                    viewModel.togglePlayback(for: idea)
+                                }
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        viewModel.deleteAudioIdea(idea, modelContext: modelContext)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+                .padding(.bottom, 40)
             }
         }
-        .listStyle(.plain)
-        .navigationTitle(viewModel.song.title)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -84,7 +89,6 @@ struct SongDetailView: View {
                     .background(Color.red.cornerRadius(8))
                     .padding()
                     .onAppear {
-                        // Auto-dismiss after 3 seconds
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                             if playerService.errorMessage == error {
                                 playerService.errorMessage = nil
@@ -92,6 +96,65 @@ struct SongDetailView: View {
                         }
                     }
             }
+        }
+    }
+}
+
+struct TimelineRow: View {
+    let idea: AudioIdea
+    let isPlaying: Bool
+    let onTogglePlay: () -> Void
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 16) {
+            // Timeline Dot
+            Circle()
+                .fill(Color.accentColor)
+                .frame(width: 12, height: 12)
+                .background(Color(uiColor: .systemBackground).frame(width: 20, height: 20)) // Gap effect
+                .padding(.leading, 16)
+                .offset(y: 24) // Align roughly with the play button center
+            
+            // Card
+            VStack(alignment: .leading, spacing: 16) {
+                Text(idea.title)
+                    .font(.headline)
+                
+                HStack(spacing: 16) {
+                    Button(action: onTogglePlay) {
+                        Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                            .resizable()
+                            .frame(width: 44, height: 44)
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    
+                    // Waveform placeholder (visual only)
+                    HStack(spacing: 4) {
+                        ForEach(0..<22) { index in
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.accentColor.opacity(0.3))
+                                .frame(width: 4, height: .random(in: 10...24))
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Duration Placeholder (since we don't store it yet)
+                    Text("0:00")
+                        .font(.caption)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+                
+                Text(idea.createdAt, format: .dateTime.day().month().hour().minute())
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .padding(16)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .cornerRadius(16)
+            .padding(.trailing, 16)
         }
     }
 }
