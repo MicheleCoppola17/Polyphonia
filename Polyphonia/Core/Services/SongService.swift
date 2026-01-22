@@ -16,8 +16,11 @@ class SongService {
         self.modelContext = modelContext
     }
     
-    func fetchAllSongs() throws -> [Song] {
-        let descriptor = FetchDescriptor<Song>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
+    func fetchSongs(searchString: String = "") throws -> [Song] {
+        let predicate = #Predicate<Song> { song in
+            searchString.isEmpty ? true : song.title.localizedStandardContains(searchString)
+        }
+        let descriptor = FetchDescriptor<Song>(predicate: predicate, sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
         return try modelContext.fetch(descriptor)
     }
     

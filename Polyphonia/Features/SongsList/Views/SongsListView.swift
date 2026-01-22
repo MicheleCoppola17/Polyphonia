@@ -11,7 +11,6 @@ import SwiftData
 struct SongsListView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = SongsListViewModel()
-    @State private var isPresentingRecording = false
     
     var body: some View {
         NavigationStack {
@@ -34,26 +33,15 @@ struct SongsListView: View {
             .navigationTitle("Songs")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack {
-                        Button {
-                            isPresentingRecording = true
-                        } label: {
-                            Image(systemName: "mic.badge.plus")
-                        }
-                        
-                        Button {
-                            viewModel.isAddingSong = true
-                        } label: {
-                            Image(systemName: "plus")
-                        }
+                    Button {
+                        viewModel.isAddingSong = true
+                    } label: {
+                        Image(systemName: "plus")
                     }
                 }
             }
             .navigationDestination(for: Song.self) { song in
                 SongDetailView(song: song)
-            }
-            .sheet(isPresented: $isPresentingRecording) {
-                RecordingView()
             }
             .alert("New Song", isPresented: $viewModel.isAddingSong) {
                 TextField("Song Title", text: $viewModel.newSongTitle)

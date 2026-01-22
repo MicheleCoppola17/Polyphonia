@@ -28,7 +28,7 @@ class SongsListViewModel {
     func fetchSongs() {
         guard let service else { return }
         do {
-            songs = try service.fetchAllSongs()
+            songs = try service.fetchSongs()
         } catch {
             print("Failed to fetch songs: \(error)")
         }
