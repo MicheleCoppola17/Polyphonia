@@ -6,40 +6,114 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct RecordingView: View {
-    @State private var viewModel = RecordingViewModel()
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @State private var viewModel = RecordingViewModel()
+    
+    let song: Song
 
     var body: some View {
-        VStack {
-            Text("Recording Screen")
-                .font(.largeTitle)
-            
-            Text(viewModel.isRecording ? "Recording..." : "Ready to Record")
-                .foregroundStyle(viewModel.isRecording ? .red : .primary)
-                .padding()
+        NavigationStack {
+            VStack(spacing: 30) {
+                if let error = viewModel.errorMessage {
+                    Text(error)
+                        .foregroundStyle(.red)
+                        .font(.caption)
+                }
+                
+                if viewModel.recordedURL == nil {
+                    // Recording State
+                    recordingControls
+                } else {
+                    // Review State
+                    reviewControls
+                }
+            }
+            .padding()
+            .navigationTitle("New Recording")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        viewModel.discard()
+                        dismiss()
+                    }
+                }
+            }
+            .interactiveDismissDisabled(viewModel.isRecording)
+        }
+    }
+    
+    private var recordingControls: some View {
+        VStack(spacing: 20) {
+            Text(viewModel.isRecording ? "Recording..." : "Ready")
+                .font(.headline)
+                .foregroundStyle(viewModel.isRecording ? .red : .secondary)
             
             Button {
-                viewModel.toggleRecording()
+                if viewModel.isRecording {
+                    viewModel.stopRecording()
+                } else {
+                    viewModel.startRecording()
+                }
             } label: {
-                Image(systemName: viewModel.isRecording ? "stop.circle.fill" : "record.circle")
-                    .resizable()
-                    .frame(width: 80, height: 80)
-                    .foregroundStyle(.red)
+                ZStack {
+                    Circle()
+                        .stroke(lineWidth: 4)
+                        .foregroundStyle(viewModel.isRecording ? .red : .primary)
+                        .frame(width: 80, height: 80)
+                    
+                    if viewModel.isRecording {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(.red)
+                            .frame(width: 40, height: 40)
+                    } else {
+                        Circle()
+                            .fill(.red)
+                            .frame(width: 60, height: 60)
+                    }
+                }
             }
+            .padding()
         }
-        .padding()
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Close") {
+    }
+    
+    private var reviewControls: some View {
+        VStack(spacing: 20) {
+            TextField("Idea Title", text: $viewModel.ideaTitle)
+                .textFieldStyle(.roundedBorder)
+                .font(.headline)
+            
+            Text("Recording captured")
+                .foregroundStyle(.secondary)
+            
+            HStack(spacing: 20) {
+                Button("Discard", role: .destructive) {
+                    withAnimation {
+                        viewModel.discard()
+                    }
+                }
+                .buttonStyle(.bordered)
+                
+                Button("Save") {
+                    viewModel.save(to: song, modelContext: modelContext)
                     dismiss()
                 }
+                .buttonStyle(.borderedProminent)
             }
         }
     }
 }
 
 #Preview {
-    RecordingView()
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Song.self, configurations: config)
+    let song = Song(title: "Preview Song")
+    container.mainContext.insert(song)
+    
+    return RecordingView(song: song)
+        .modelContainer(container)
 }
