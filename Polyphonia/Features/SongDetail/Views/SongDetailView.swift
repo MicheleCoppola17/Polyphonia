@@ -24,7 +24,7 @@ struct SongDetailView: View {
             ZStack(alignment: .leading) {
                 // Vertical Timeline Line
                 Rectangle()
-                    .fill(Color.gray.opacity(0.3))
+                    .fill(viewModel.sortedAudioIdeas.isEmpty ? Color.clear : Color.gray.opacity(0.3))
                     .frame(width: 2)
                     .padding(.leading, 21) // Center of the 12pt dot + padding
                     .padding(.top, 80) // Offset for header
