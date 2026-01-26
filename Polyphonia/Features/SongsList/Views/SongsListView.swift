@@ -24,6 +24,7 @@ struct SongsListView: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
+                        .padding(.vertical)
                     }
                 }
                 .onDelete { indexSet in
