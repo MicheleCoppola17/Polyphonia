@@ -57,6 +57,16 @@ struct SongsListView: View {
             .onAppear {
                 viewModel.onAppear(modelContext: modelContext)
             }
+            .overlay {
+                if viewModel.songs.isEmpty {
+                    ContentUnavailableView(
+                        "No Songs Yet",
+                        systemImage: "music.note",
+                        description: Text("Tap + to create your first song.")
+                    )
+                    .padding(40)
+                }
+            }
         }
     }
 }
