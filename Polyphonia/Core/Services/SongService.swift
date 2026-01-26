@@ -36,8 +36,8 @@ class SongService {
         try? modelContext.save()
     }
     
-    func addAudioIdea(to song: Song, title: String, url: URL) {
-        let idea = AudioIdea(title: title, url: url)
+    func addAudioIdea(to song: Song, title: String, url: URL, duration: TimeInterval) {
+        let idea = AudioIdea(title: title, url: url, duration: duration)
         idea.song = song // Relationship is managed
         // Inserting idea into context is implicitly done when adding to relationship if song is in context
         // But safer to insert explicitly or rely on SwiftData's relationship management

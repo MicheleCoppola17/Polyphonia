@@ -12,6 +12,7 @@ import SwiftData
 @MainActor
 @Observable
 class RecordingViewModel {
+    var recordedDuration: TimeInterval = 0
     var isRecording: Bool = false
     var ideaTitle: String = ""
     var recordedURL: URL?
@@ -36,9 +37,10 @@ class RecordingViewModel {
     func stopRecording() {
         Task {
             do {
-                let (url, _) = try await audioService.stopRecording()
+                let (url, duration) = try await audioService.stopRecording()
                 isRecording = false
                 recordedURL = url
+                recordedDuration = duration
                 if ideaTitle.isEmpty {
                     ideaTitle = "New Idea \(Date().formatted(date: .omitted, time: .shortened))"
                 }
@@ -52,7 +54,7 @@ class RecordingViewModel {
     func save(to song: Song, modelContext: ModelContext) {
         guard let url = recordedURL, !ideaTitle.isEmpty else { return }
         let service = SongService(modelContext: modelContext)
-        service.addAudioIdea(to: song, title: ideaTitle, url: url)
+        service.addAudioIdea(to: song, title: ideaTitle, url: url, duration: recordedDuration)
     }
     
     func discard() {

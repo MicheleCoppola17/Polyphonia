@@ -140,7 +140,7 @@ struct TimelineRow: View {
                     Spacer()
                     
                     // Duration Placeholder (since we don't store it yet)
-                    Text("0:00")
+                    Text(idea.duration.mmSS)
                         .font(.caption)
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
@@ -156,6 +156,14 @@ struct TimelineRow: View {
             .cornerRadius(16)
             .padding(.trailing, 16)
         }
+    }
+}
+
+extension TimeInterval {
+    var mmSS: String {
+        let minutes = Int(self) / 60
+        let seconds = Int(self) % 60
+        return String(format: "%d:%02d", minutes, seconds)
     }
 }
 

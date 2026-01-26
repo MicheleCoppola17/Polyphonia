@@ -37,13 +37,15 @@ enum PolyphoniaSchemaV1: VersionedSchema {
         var title: String
         var createdAt: Date
         var url: URL
+        var duration: TimeInterval
         var song: Song?
         
-        init(id: UUID = UUID(), title: String, createdAt: Date = Date(), url: URL) {
+        init(id: UUID = UUID(), title: String, createdAt: Date = Date(), url: URL, duration: TimeInterval = 0) {
             self.id = id
             self.title = title
             self.createdAt = createdAt
             self.url = url
+            self.duration = duration
         }
     }
 }
