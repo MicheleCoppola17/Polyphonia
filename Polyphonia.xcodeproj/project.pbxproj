@@ -15,9 +15,22 @@
 		A57BE6462F218DB000EBA67B /* GEMINI.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = GEMINI.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A516D6FC2F295A6200CC4FB0 /* Exceptions for "Polyphonia" folder in "Polyphonia" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A57BE6372F217D2900EBA67B /* Polyphonia */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A57BE63A2F217D2900EBA67B /* Polyphonia */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A516D6FC2F295A6200CC4FB0 /* Exceptions for "Polyphonia" folder in "Polyphonia" target */,
+			);
 			path = Polyphonia;
 			sourceTree = "<group>";
 		};
@@ -261,6 +274,7 @@
 				DEVELOPMENT_TEAM = 2XSHXS4594;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Polyphonia/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need to have acces to your microphone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -295,6 +309,7 @@
 				DEVELOPMENT_TEAM = 2XSHXS4594;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Polyphonia/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need to have acces to your microphone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
