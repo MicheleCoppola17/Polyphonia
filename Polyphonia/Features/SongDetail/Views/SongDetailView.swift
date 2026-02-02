@@ -27,20 +27,9 @@ struct SongDetailView: View {
                     .fill(viewModel.sortedAudioIdeas.isEmpty ? Color.clear : Color.gray.opacity(0.3))
                     .frame(width: 2)
                     .padding(.leading, 21) // Center of the 12pt dot + padding
-                    .padding(.top, 80) // Offset for header
+                    .padding(.top, 15) // Offset for header
                 
                 VStack(alignment: .leading, spacing: 24) {
-                    // Header
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(viewModel.song.title)
-                            .font(.system(size: 34, weight: .bold))
-                        Text("\(viewModel.sortedAudioIdeas.count) takes")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.leading, 44) // Align with content card
-                    .padding(.top, 20)
-                    
                     if viewModel.sortedAudioIdeas.isEmpty {
                         ContentUnavailableView(
                             "No Ideas Yet",
@@ -68,7 +57,8 @@ struct SongDetailView: View {
                 .padding(.bottom, 40)
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(viewModel.song.title)
+        .navigationSubtitle("\(viewModel.sortedAudioIdeas.count) takes")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -155,6 +145,7 @@ struct TimelineRow: View {
             .background(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(16)
             .padding(.trailing, 16)
+            .padding(.top, 15)
         }
     }
 }
