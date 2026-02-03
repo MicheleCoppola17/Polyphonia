@@ -23,14 +23,17 @@ class AudioPlayerService: NSObject, ObservableObject {
     
     func play(url: URL) {
         errorMessage = nil
-        // If we are already playing this URL, just resume
-        if let currentlyPlayingURL = currentlyPlayingURL, currentlyPlayingURL == url, let player = audioPlayer {
-            if !player.isPlaying {
-                player.play()
-                isPlaying = true
-            }
-            return
-        }
+//        // If we are already playing this URL, just resume
+//        if let currentlyPlayingURL = currentlyPlayingURL, currentlyPlayingURL == url, let player = audioPlayer {
+//            if !player.isPlaying {
+//                player.play()
+//                isPlaying = true
+//            }
+//            return
+//        }
+        
+        let fileName = url.lastPathComponent
+        let currentURL = getDocumentsDirectory().appendingPathComponent(fileName)
         
         // Otherwise, stop current and start new
         stop()
@@ -40,7 +43,8 @@ class AudioPlayerService: NSObject, ObservableObject {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
             
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer = try AVAudioPlayer(contentsOf: currentURL)
+//            audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.delegate = self
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
@@ -73,6 +77,10 @@ class AudioPlayerService: NSObject, ObservableObject {
             play(url: url)
         }
     }
+}
+
+func getDocumentsDirectory() -> URL {
+    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
 }
 
 extension AudioPlayerService: AVAudioPlayerDelegate {

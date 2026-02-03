@@ -58,7 +58,8 @@ struct SongDetailView: View {
             }
         }
         .navigationTitle(viewModel.song.title)
-        .navigationSubtitle("\(viewModel.sortedAudioIdeas.count) takes")
+//        .navigationSubtitle("\(viewModel.sortedAudioIdeas.count) takes")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
