@@ -15,13 +15,15 @@ class PersistenceController {
     let container: ModelContainer
 
     init(inMemory: Bool = false) {
-        let schema = Schema(PolyphoniaSchemaV1.models)
+        let schema = Schema(PolyphoniaSchemaV2.models)
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
 
         do {
-            // In the future, we will add a migration plan here
-            // let migrationPlan = MigrationPlan.self
-            container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            container = try ModelContainer(
+                for: schema,
+                migrationPlan: PolyphoniaMigrationPlan.self,
+                configurations: [modelConfiguration]
+            )
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }

@@ -8,5 +8,5 @@
 import Foundation
 
 // Current Schema Version
-typealias Song = PolyphoniaSchemaV1.Song
-typealias AudioIdea = PolyphoniaSchemaV1.AudioIdea
+typealias Song = PolyphoniaSchemaV2.Song
+typealias AudioIdea = PolyphoniaSchemaV2.AudioIdea
