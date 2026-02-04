@@ -48,6 +48,11 @@ class SongDetailViewModel {
         playerService.togglePlayPause(url: idea.url)
     }
     
+    func updateStatus(for idea: AudioIdea, to status: IdeaStatus, modelContext: ModelContext) {
+        idea.status = status
+        try? modelContext.save()
+    }
+    
     func isPlaying(idea: AudioIdea) -> Bool {
         return playerService.isPlaying && playerService.currentlyPlayingURL == idea.url
     }

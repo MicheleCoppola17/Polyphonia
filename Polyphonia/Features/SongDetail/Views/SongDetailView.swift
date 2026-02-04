@@ -44,10 +44,26 @@ struct SongDetailView: View {
                                     viewModel.togglePlayback(for: idea)
                                 }
                                 .contextMenu {
-                                    Button(role: .destructive) {
-                                        viewModel.deleteAudioIdea(idea, modelContext: modelContext)
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
+                                    Section("Status") {
+                                        ForEach(IdeaStatus.allCases, id: \.self) { status in
+                                            Button {
+                                                viewModel.updateStatus(for: idea, to: status, modelContext: modelContext)
+                                            } label: {
+                                                if idea.status == status {
+                                                    Label(status.title, systemImage: "checkmark")
+                                                } else {
+                                                    Text(status.title)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    Section {
+                                        Button(role: .destructive) {
+                                            viewModel.deleteAudioIdea(idea, modelContext: modelContext)
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
                                     }
                                 }
                             }
@@ -58,7 +74,6 @@ struct SongDetailView: View {
             }
         }
         .navigationTitle(viewModel.song.title)
-//        .navigationSubtitle("\(viewModel.sortedAudioIdeas.count) takes")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -107,9 +122,16 @@ struct TimelineRow: View {
                 .offset(y: 24) // Align roughly with the play button center
             
             // Card
-            VStack(alignment: .leading, spacing: 16) {
-                Text(idea.title)
-                    .font(.headline)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top) {
+                    Text(idea.title)
+                        .font(.headline)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    StatusBadge(status: idea.status)
+                }
                 
                 HStack(spacing: 16) {
                     Button(action: onTogglePlay) {
@@ -121,7 +143,7 @@ struct TimelineRow: View {
                     
                     // Waveform placeholder (visual only)
                     HStack(spacing: 4) {
-                        ForEach(0..<22) { index in
+                        ForEach(0..<18) { _ in
                             RoundedRectangle(cornerRadius: 2)
                                 .fill(Color.accentColor.opacity(0.3))
                                 .frame(width: 4, height: .random(in: 10...24))
@@ -130,7 +152,7 @@ struct TimelineRow: View {
                     
                     Spacer()
                     
-                    // Duration Placeholder (since we don't store it yet)
+                    // Duration Placeholder
                     Text(idea.duration.mmSS)
                         .font(.caption)
                         .monospacedDigit()
@@ -151,6 +173,52 @@ struct TimelineRow: View {
     }
 }
 
+struct StatusBadge: View {
+    let status: IdeaStatus
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: status.icon)
+                .font(.caption2)
+            Text(status.title)
+                .font(.caption2)
+                .fontWeight(.medium)
+        }
+        .foregroundStyle(status.color)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(status.color.opacity(0.1))
+        .clipShape(Capsule())
+    }
+}
+
+// Helper for status UI
+private extension IdeaStatus {
+    var title: String {
+        switch self {
+        case .draft: return "Draft"
+        case .favorite: return "Favorite"
+        case .final: return "Final"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .draft: return "pencil"
+        case .favorite: return "star.fill"
+        case .final: return "checkmark.circle.fill"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .draft: return .secondary
+        case .favorite: return .orange
+        case .final: return .green
+        }
+    }
+}
+
 extension TimeInterval {
     var mmSS: String {
         let minutes = Int(self) / 60
@@ -165,11 +233,23 @@ extension TimeInterval {
     let descriptor = FetchDescriptor<Song>()
     let song = (try? context.fetch(descriptor).first) ?? Song(title: "Fallback Song")
     
-    // Add dummy audio idea for preview if none exists
+    // Clean up old ideas in preview context to avoid duplicates if preview runs multiple times
+    // In a real app we wouldn't delete, but for preview stability:
+    // try? context.delete(model: AudioIdea.self)
+    
     if song.audioIdeas.isEmpty {
-        let idea = AudioIdea(title: "Riff 1", url: URL(fileURLWithPath: "/dev/null"))
-        idea.song = song
-        context.insert(idea)
+        let idea1 = AudioIdea(title: "Draft Riff", url: URL(fileURLWithPath: "/dev/null"), status: .draft)
+        idea1.song = song
+        
+        let idea2 = AudioIdea(title: "Good Take", url: URL(fileURLWithPath: "/dev/null"), status: .favorite)
+        idea2.song = song
+        
+        let idea3 = AudioIdea(title: "Final Mix", url: URL(fileURLWithPath: "/dev/null"), status: .final)
+        idea3.song = song
+        
+        context.insert(idea1)
+        context.insert(idea2)
+        context.insert(idea3)
     }
     
     return NavigationStack {
