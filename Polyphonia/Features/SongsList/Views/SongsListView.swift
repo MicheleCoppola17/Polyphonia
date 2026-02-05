@@ -32,6 +32,10 @@ struct SongsListView: View {
                 }
             }
             .navigationTitle("Songs")
+            .searchable(text: $viewModel.searchText, prompt: "Search songs")
+            .onChange(of: viewModel.searchText) {
+                viewModel.fetchSongs()
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

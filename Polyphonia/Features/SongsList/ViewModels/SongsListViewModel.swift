@@ -15,6 +15,7 @@ class SongsListViewModel {
     var songs: [Song] = []
     var isAddingSong = false
     var newSongTitle = ""
+    var searchText = ""
     
     private var service: SongService?
     
@@ -28,7 +29,7 @@ class SongsListViewModel {
     func fetchSongs() {
         guard let service else { return }
         do {
-            songs = try service.fetchSongs()
+            songs = try service.fetchSongs(searchString: searchText)
         } catch {
             print("Failed to fetch songs: \(error)")
         }

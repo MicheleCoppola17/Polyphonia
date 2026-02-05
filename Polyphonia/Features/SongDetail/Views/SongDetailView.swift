@@ -30,40 +30,31 @@ struct SongDetailView: View {
                     .padding(.top, 15) // Offset for header
                 
                 VStack(alignment: .leading, spacing: 24) {
-                    if viewModel.sortedAudioIdeas.isEmpty {
-                        ContentUnavailableView(
-                            "No Ideas Yet",
-                            systemImage: "music.mic",
-                            description: Text("Tap + to record your first idea.")
-                        )
-                        .padding(.top, 40)
-                    } else {
-                        LazyVStack(spacing: 24) {
-                            ForEach(viewModel.sortedAudioIdeas) { idea in
-                                TimelineRow(idea: idea, isPlaying: viewModel.isPlaying(idea: idea)) {
-                                    viewModel.togglePlayback(for: idea)
-                                }
-                                .contextMenu {
-                                    Section("Status") {
-                                        ForEach(IdeaStatus.allCases, id: \.self) { status in
-                                            Button {
-                                                viewModel.updateStatus(for: idea, to: status, modelContext: modelContext)
-                                            } label: {
-                                                if idea.status == status {
-                                                    Label(status.title, systemImage: "checkmark")
-                                                } else {
-                                                    Text(status.title)
-                                                }
+                    LazyVStack(spacing: 24) {
+                        ForEach(viewModel.sortedAudioIdeas) { idea in
+                            TimelineRow(idea: idea, isPlaying: viewModel.isPlaying(idea: idea)) {
+                                viewModel.togglePlayback(for: idea)
+                            }
+                            .contextMenu {
+                                Section("Status") {
+                                    ForEach(IdeaStatus.allCases, id: \.self) { status in
+                                        Button {
+                                            viewModel.updateStatus(for: idea, to: status, modelContext: modelContext)
+                                        } label: {
+                                            if idea.status == status {
+                                                Label(status.title, systemImage: "checkmark")
+                                            } else {
+                                                Text(status.title)
                                             }
                                         }
                                     }
-                                    
-                                    Section {
-                                        Button(role: .destructive) {
-                                            viewModel.deleteAudioIdea(idea, modelContext: modelContext)
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
-                                        }
+                                }
+                                
+                                Section {
+                                    Button(role: .destructive) {
+                                        viewModel.deleteAudioIdea(idea, modelContext: modelContext)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
                                     }
                                 }
                             }
@@ -101,6 +92,16 @@ struct SongDetailView: View {
                             }
                         }
                     }
+            }
+        }
+        .overlay {
+            if viewModel.sortedAudioIdeas.isEmpty {
+                ContentUnavailableView(
+                    "No Ideas Yet",
+                    systemImage: "music.mic",
+                    description: Text("Tap + to record your first idea.")
+                )
+                .padding(.top, 40)
             }
         }
     }
