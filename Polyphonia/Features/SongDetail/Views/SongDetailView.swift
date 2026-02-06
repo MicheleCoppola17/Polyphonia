@@ -7,6 +7,7 @@
 
 import SwiftData
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SongDetailView: View {
     @Environment(\.modelContext) private var modelContext
@@ -21,88 +22,129 @@ struct SongDetailView: View {
     
     var body: some View {
         ScrollView {
-            ZStack(alignment: .leading) {
-                // Vertical Timeline Line
-                Rectangle()
-                    .fill(viewModel.sortedAudioIdeas.isEmpty ? Color.clear : Color.gray.opacity(0.3))
-                    .frame(width: 2)
-                    .padding(.leading, 21) // Center of the 12pt dot + padding
-                    .padding(.top, 15) // Offset for header
-                
-                VStack(alignment: .leading, spacing: 24) {
-                    LazyVStack(spacing: 24) {
-                        ForEach(viewModel.sortedAudioIdeas) { idea in
-                            TimelineRow(idea: idea, isPlaying: viewModel.isPlaying(idea: idea)) {
-                                viewModel.togglePlayback(for: idea)
-                            }
-                            .contextMenu {
-                                Section("Status") {
-                                    ForEach(IdeaStatus.allCases, id: \.self) { status in
-                                        Button {
-                                            viewModel.updateStatus(for: idea, to: status, modelContext: modelContext)
-                                        } label: {
-                                            if idea.status == status {
-                                                Label(status.title, systemImage: "checkmark")
-                                            } else {
-                                                Text(status.title)
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                Section {
-                                    Button(role: .destructive) {
-                                        viewModel.deleteAudioIdea(idea, modelContext: modelContext)
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                .padding(.bottom, 40)
-            }
+            timelineContent
         }
         .navigationTitle(viewModel.song.title)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    viewModel.isPresentingRecording = true
-                } label: {
-                    Image(systemName: "plus")
-                }
+                menuButton
             }
         }
         .sheet(isPresented: $viewModel.isPresentingRecording) {
             RecordingView(song: viewModel.song)
         }
+        .fileImporter(
+            isPresented: $viewModel.isImportingFile,
+            allowedContentTypes: [.audio],
+            allowsMultipleSelection: false
+        ) { result in
+            let mappedResult = result.map { $0.first! } // Force unwrap safe because success implies at least one URL if single selection
+            viewModel.importAudio(result: mappedResult, modelContext: modelContext)
+        }
         .overlay(alignment: .bottom) {
-            if let error = playerService.errorMessage {
-                Text(error)
-                    .foregroundStyle(.white)
-                    .padding()
-                    .background(Color.red.cornerRadius(8))
-                    .padding()
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            if playerService.errorMessage == error {
-                                playerService.errorMessage = nil
-                            }
-                        }
-                    }
-            }
+            errorOverlay
         }
         .overlay {
-            if viewModel.sortedAudioIdeas.isEmpty {
-                ContentUnavailableView(
-                    "No Ideas Yet",
-                    systemImage: "music.mic",
-                    description: Text("Tap + to record your first idea.")
-                )
-                .padding(.top, 40)
+            emptyStateOverlay
+        }
+    }
+    
+    private var timelineContent: some View {
+        ZStack(alignment: .leading) {
+            // Vertical Timeline Line
+            Rectangle()
+                .fill(viewModel.sortedAudioIdeas.isEmpty ? Color.clear : Color.gray.opacity(0.3))
+                .frame(width: 2)
+                .padding(.leading, 21) // Center of the 12pt dot + padding
+                .padding(.top, 15) // Offset for header
+            
+            VStack(alignment: .leading, spacing: 24) {
+                LazyVStack(spacing: 24) {
+                    ForEach(viewModel.sortedAudioIdeas) { idea in
+                        TimelineRow(idea: idea, isPlaying: viewModel.isPlaying(idea: idea)) {
+                            viewModel.togglePlayback(for: idea)
+                        }
+                        .contextMenu {
+                            contextMenuContent(for: idea)
+                        }
+                    }
+                }
             }
+            .padding(.bottom, 40)
+        }
+    }
+    
+    @ViewBuilder
+    private func contextMenuContent(for idea: AudioIdea) -> some View {
+        Section("Status") {
+            ForEach(IdeaStatus.allCases, id: \.self) { status in
+                Button {
+                    viewModel.updateStatus(for: idea, to: status, modelContext: modelContext)
+                } label: {
+                    if idea.status == status {
+                        Label(status.title, systemImage: "checkmark")
+                    } else {
+                        Text(status.title)
+                    }
+                }
+            }
+        }
+        
+        Section {
+            Button(role: .destructive) {
+                viewModel.deleteAudioIdea(idea, modelContext: modelContext)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+    }
+    
+    private var menuButton: some View {
+        Menu {
+            Button {
+                viewModel.isPresentingRecording = true
+            } label: {
+                Label("Record New Idea", systemImage: "mic.badge.plus")
+            }
+            
+            Button {
+                viewModel.isImportingFile = true
+            } label: {
+                Label("Import Audio File", systemImage: "arrow.down.doc")
+            }
+        } label: {
+            Image(systemName: "plus")
+        }
+    }
+    
+    @ViewBuilder
+    private var errorOverlay: some View {
+        if let error = playerService.errorMessage {
+            Text(error)
+                .foregroundStyle(.white)
+                .padding()
+                .background(Color.red.cornerRadius(8))
+                .padding()
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        if playerService.errorMessage == error {
+                            playerService.errorMessage = nil
+                        }
+                    }
+                }
+        }
+    }
+    
+    @ViewBuilder
+    private var emptyStateOverlay: some View {
+        if viewModel.sortedAudioIdeas.isEmpty {
+            ContentUnavailableView(
+                "No Ideas Yet",
+                systemImage: "music.mic",
+                description: Text("Tap + to record your first idea.")
+            )
+            .padding(.top, 40)
         }
     }
 }
