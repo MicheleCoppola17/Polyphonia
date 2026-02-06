@@ -35,7 +35,6 @@ class RecordingViewModel {
                 meteringTask = Task {
                     for await level in audioService.amplitudeStream() {
                         self.currentAmplitude = level
-                        print(currentAmplitude)
                     }
                 }
             } catch {
