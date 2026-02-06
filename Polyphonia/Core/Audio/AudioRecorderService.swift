@@ -94,14 +94,57 @@ class AudioRecorderService: NSObject {
         do {
             let recorder = try AVAudioRecorder(url: url, settings: settings)
             recorder.delegate = self
+            recorder.isMeteringEnabled = true
             if recorder.record() {
                 self.audioRecorder = recorder
                 self.recordingURL = url
             } else {
+                print("AudioRecorder failed to start recording (record() returned false)")
                 throw AudioRecorderError.recordingFailed
             }
         } catch {
+            print("AudioRecorder initialization error: \(error)")
             throw AudioRecorderError.recordingFailed
+        }
+    }
+    
+    /// Returns an async stream of normalized amplitude values (0.0 - 1.0)
+    func amplitudeStream() -> AsyncStream<Float> {
+        AsyncStream { continuation in
+            let task = Task { @MainActor [weak self] in
+                while !Task.isCancelled {
+                    guard let self else {
+                        continuation.finish()
+                        return
+                    }
+                    
+                    guard let recorder = self.audioRecorder, recorder.isRecording else {
+                        if self.audioRecorder == nil {
+                            continuation.finish()
+                            return
+                        }
+                        try? await Task.sleep(for: .seconds(0.1))
+                        continue
+                    }
+                    
+                    recorder.updateMeters()
+                    
+                    // Get average power for channel 0 (dB, typically -160 to 0)
+                    let power = recorder.averagePower(forChannel: 0)
+                    
+                    // Convert dB to linear amplitude (0.0 to 1.0)
+                    let linear = pow(10.0, power / 20.0)
+                    let normalized = max(0.0, min(1.0, linear))
+                    
+                    continuation.yield(normalized)
+                    
+                    try? await Task.sleep(for: .seconds(0.05)) // ~20Hz updates
+                }
+            }
+            
+            continuation.onTermination = { _ in
+                task.cancel()
+            }
         }
     }
     

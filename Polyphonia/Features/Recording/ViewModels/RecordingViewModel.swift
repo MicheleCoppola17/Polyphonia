@@ -17,8 +17,10 @@ class RecordingViewModel {
     var ideaTitle: String = ""
     var recordedURL: URL?
     var errorMessage: String?
+    var currentAmplitude: Float = 0
     
     private let audioService = AudioRecorderService()
+    private var meteringTask: Task<Void, Never>?
     
     init() {}
     
@@ -28,6 +30,14 @@ class RecordingViewModel {
                 errorMessage = nil
                 try await audioService.startRecording()
                 isRecording = true
+                
+                meteringTask?.cancel()
+                meteringTask = Task {
+                    for await level in audioService.amplitudeStream() {
+                        self.currentAmplitude = level
+                        print(currentAmplitude)
+                    }
+                }
             } catch {
                 errorMessage = "Failed to start recording: \(error.localizedDescription)"
             }
@@ -35,6 +45,10 @@ class RecordingViewModel {
     }
     
     func stopRecording() {
+        meteringTask?.cancel()
+        meteringTask = nil
+        currentAmplitude = 0
+        
         Task {
             do {
                 let (url, duration) = try await audioService.stopRecording()
