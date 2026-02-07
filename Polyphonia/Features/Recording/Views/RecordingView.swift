@@ -17,20 +17,50 @@ struct RecordingView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 30) {
+            VStack {
                 if let error = viewModel.errorMessage {
                     Text(error)
                         .foregroundStyle(.red)
                         .font(.caption)
+                        .padding()
                 }
                 
+                // 1. Top/Center Area: Visualization
+                Spacer()
+                
                 if viewModel.recordedURL == nil {
-                    // Recording State
-                    recordingControls
+                    // Show the Wave Visualizer while recording or ready
+                    // We pass the amplitude from the viewModel
+                    if viewModel.isRecording {
+                        WaveParticlesView(amplitude: viewModel.currentAmplitude, color: .red)
+                            .frame(height: 200)
+                    } else {
+                        // I have to think what to put
+                    }
                 } else {
-                    // Review State
-                    reviewControls
+                    // Review State Central UI
+                    VStack(spacing: 20) {
+                        Image(systemName: "waveform")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.primary)
+                        Text("Recording Captured")
+                            .font(.headline)
+                    }
                 }
+                
+                Spacer()
+                
+                // 2. Bottom Area: Controls
+                VStack {
+                    if viewModel.recordedURL == nil {
+                        recordingControls
+                    } else {
+                        reviewControls
+                    }
+                }
+                .padding(.bottom, 30) // Adds some breathing room from the bottom edge
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemBackground)) // Optional: keeps controls legible
             }
             .padding()
             .navigationTitle("New Recording")
@@ -49,8 +79,9 @@ struct RecordingView: View {
     
     private var recordingControls: some View {
         VStack(spacing: 20) {
-            Text(viewModel.isRecording ? "Recording..." : "Ready")
-                .font(.headline)
+            Text(viewModel.isRecording ? "Tap to Stop" : "Tap to Record")
+                .font(.subheadline)
+                .fontWeight(.medium)
                 .foregroundStyle(viewModel.isRecording ? .red : .secondary)
             
             Button {
@@ -63,32 +94,31 @@ struct RecordingView: View {
                 ZStack {
                     Circle()
                         .stroke(lineWidth: 4)
-                        .foregroundStyle(viewModel.isRecording ? .red : .primary)
+                        .foregroundStyle(viewModel.isRecording ? .red.opacity(0.3) : .primary.opacity(0.2))
                         .frame(width: 80, height: 80)
                     
                     if viewModel.isRecording {
                         RoundedRectangle(cornerRadius: 4)
                             .fill(.red)
-                            .frame(width: 40, height: 40)
+                            .frame(width: 35, height: 35)
+                            // Subtle pulse effect
+                            .shadow(color: .red, radius: viewModel.currentAmplitude > 0.5 ? 10 : 0)
                     } else {
                         Circle()
                             .fill(.red)
-                            .frame(width: 60, height: 60)
+                            .frame(width: 65, height: 65)
                     }
                 }
             }
-            .padding()
         }
     }
     
     private var reviewControls: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             TextField("Idea Title", text: $viewModel.ideaTitle)
                 .textFieldStyle(.roundedBorder)
                 .font(.headline)
-            
-            Text("Recording captured")
-                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
             
             HStack(spacing: 20) {
                 Button("Discard", role: .destructive) {
@@ -97,14 +127,17 @@ struct RecordingView: View {
                     }
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.large)
                 
-                Button("Save") {
+                Button("Save Idea") {
                     viewModel.save(to: song, modelContext: modelContext)
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.large)
             }
         }
+        .padding(.horizontal)
     }
 }
 
