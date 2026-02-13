@@ -15,7 +15,7 @@ class PersistenceController {
     let container: ModelContainer
 
     init(inMemory: Bool = false) {
-        let schema = Schema(PolyphoniaSchemaV2.models)
+        let schema = Schema(PolyphoniaSchemaV3.models)
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
 
         do {

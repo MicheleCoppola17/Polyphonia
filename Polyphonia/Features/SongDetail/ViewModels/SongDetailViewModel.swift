@@ -30,7 +30,7 @@ class SongDetailViewModel {
     }
     
     var sortedAudioIdeas: [AudioIdea] {
-        song.audioIdeas.sorted { $0.createdAt > $1.createdAt }
+        (song.audioIdeas ?? []).sorted { $0.createdAt > $1.createdAt }
     }
     
     func importAudio(result: Result<URL, Error>, modelContext: ModelContext) {
@@ -57,7 +57,9 @@ class SongDetailViewModel {
         }
         
         // Remove file from disk
-        try? FileManager.default.removeItem(at: idea.url)
+        if let url = idea.url {
+            try? FileManager.default.removeItem(at: url)
+        }
         
         // Remove from SwiftData
         modelContext.delete(idea)
@@ -66,7 +68,9 @@ class SongDetailViewModel {
     }
     
     func togglePlayback(for idea: AudioIdea) {
-        playerService.togglePlayPause(url: idea.url)
+        if let url = idea.url {
+            playerService.togglePlayPause(url: url)
+        }
     }
     
     func updateStatus(for idea: AudioIdea, to status: IdeaStatus, modelContext: ModelContext) {

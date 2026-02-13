@@ -270,33 +270,33 @@ extension TimeInterval {
     }
 }
 
-#Preview {
-    let container = PersistenceController.preview.container
-    let context = container.mainContext
-    let descriptor = FetchDescriptor<Song>()
-    let song = (try? context.fetch(descriptor).first) ?? Song(title: "Fallback Song")
-    
-    // Clean up old ideas in preview context to avoid duplicates if preview runs multiple times
-    // In a real app we wouldn't delete, but for preview stability:
-    // try? context.delete(model: AudioIdea.self)
-    
-    if song.audioIdeas.isEmpty {
-        let idea1 = AudioIdea(title: "Draft Riff", url: URL(fileURLWithPath: "/dev/null"), status: .draft)
-        idea1.song = song
-        
-        let idea2 = AudioIdea(title: "Good Take", url: URL(fileURLWithPath: "/dev/null"), status: .favorite)
-        idea2.song = song
-        
-        let idea3 = AudioIdea(title: "Final Mix", url: URL(fileURLWithPath: "/dev/null"), status: .final)
-        idea3.song = song
-        
-        context.insert(idea1)
-        context.insert(idea2)
-        context.insert(idea3)
-    }
-    
-    return NavigationStack {
-        SongDetailView(song: song)
-    }
-    .modelContainer(container)
-}
+//#Preview {
+//    let container = PersistenceController.preview.container
+//    let context = container.mainContext
+//    let descriptor = FetchDescriptor<Song>()
+//    let song = (try? context.fetch(descriptor).first) ?? Song(title: "Fallback Song")
+//    
+//    // Clean up old ideas in preview context to avoid duplicates if preview runs multiple times
+//    // In a real app we wouldn't delete, but for preview stability:
+//    // try? context.delete(model: AudioIdea.self)
+//    
+//    if song.audioIdeas.isEmpty {
+//        let idea1 = AudioIdea(title: "Draft Riff", url: URL(fileURLWithPath: "/dev/null"), status: .draft)
+//        idea1.song = song
+//        
+//        let idea2 = AudioIdea(title: "Good Take", url: URL(fileURLWithPath: "/dev/null"), status: .favorite)
+//        idea2.song = song
+//        
+//        let idea3 = AudioIdea(title: "Final Mix", url: URL(fileURLWithPath: "/dev/null"), status: .final)
+//        idea3.song = song
+//        
+//        context.insert(idea1)
+//        context.insert(idea2)
+//        context.insert(idea3)
+//    }
+//    
+//    return NavigationStack {
+//        SongDetailView(song: song)
+//    }
+//    .modelContainer(container)
+//}
