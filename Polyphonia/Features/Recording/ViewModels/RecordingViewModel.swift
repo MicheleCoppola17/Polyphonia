@@ -66,8 +66,11 @@ class RecordingViewModel {
     
     func save(to song: Song, modelContext: ModelContext) {
         guard let url = recordedURL, !ideaTitle.isEmpty else { return }
+        
+        let audioData = try? Data(contentsOf: url)
+        
         let service = SongService(modelContext: modelContext)
-        service.addAudioIdea(to: song, title: ideaTitle, url: url, duration: recordedDuration)
+        service.addAudioIdea(to: song, title: ideaTitle, url: url, duration: recordedDuration, audioData: audioData)
     }
     
     func discard() {

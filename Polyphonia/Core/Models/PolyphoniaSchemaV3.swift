@@ -47,13 +47,18 @@ enum PolyphoniaSchemaV3: VersionedSchema {
         var status: IdeaStatus = IdeaStatus.draft
         var song: Song?
         
-        init(id: UUID = UUID(), title: String = "", createdAt: Date = Date(), url: URL? = nil, duration: TimeInterval = 0, status: IdeaStatus = .draft) {
+        // Add this attribute to sync the actual audio data
+        @Attribute(.externalStorage)
+        var audioData: Data? = nil
+        
+        init(id: UUID = UUID(), title: String = "", createdAt: Date = Date(), url: URL? = nil, duration: TimeInterval = 0, status: IdeaStatus = .draft, audioData: Data? = nil) {
             self.id = id
             self.title = title
             self.createdAt = createdAt
             self.url = url
             self.duration = duration
             self.status = status
+            self.audioData = audioData
         }
     }
 }

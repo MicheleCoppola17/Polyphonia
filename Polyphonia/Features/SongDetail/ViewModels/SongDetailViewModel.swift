@@ -39,8 +39,11 @@ class SongDetailViewModel {
                 let url = try result.get()
                 let (localURL, duration) = try await importService.importAudio(from: url)
                 
+                // NEW: Read the data from the local file for iCloud sync
+                let audioData = try? Data(contentsOf: localURL)
+                
                 let title = url.deletingPathExtension().lastPathComponent
-                let idea = AudioIdea(title: title, url: localURL, duration: duration)
+                let idea = AudioIdea(title: title, url: localURL, duration: duration, audioData: audioData)
                 idea.song = song
                 
                 modelContext.insert(idea)
@@ -52,7 +55,7 @@ class SongDetailViewModel {
     }
     
     func deleteAudioIdea(_ idea: AudioIdea, modelContext: ModelContext) {
-        if playerService.currentlyPlayingURL == idea.url {
+        if playerService.currentlyPlayingID == idea.id {
             playerService.stop()
         }
         
@@ -69,7 +72,7 @@ class SongDetailViewModel {
     
     func togglePlayback(for idea: AudioIdea) {
         if let url = idea.url {
-            playerService.togglePlayPause(url: url)
+            playerService.togglePlayPause(idea: idea)
         }
     }
     
@@ -79,6 +82,6 @@ class SongDetailViewModel {
     }
     
     func isPlaying(idea: AudioIdea) -> Bool {
-        return playerService.isPlaying && playerService.currentlyPlayingURL == idea.url
+        return playerService.isPlaying && playerService.currentlyPlayingID == idea.id
     }
 }

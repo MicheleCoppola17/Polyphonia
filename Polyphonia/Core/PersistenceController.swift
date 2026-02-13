@@ -16,7 +16,16 @@ class PersistenceController {
 
     init(inMemory: Bool = false) {
         let schema = Schema(PolyphoniaSchemaV3.models)
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
+        let modelConfiguration: ModelConfiguration
+        
+        if inMemory {
+            modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        } else {
+            modelConfiguration = ModelConfiguration(
+                schema: schema,
+                cloudKitDatabase: .private("iCloud.michele.coppola.Polyphonia")
+            )
+        }
 
         do {
             container = try ModelContainer(

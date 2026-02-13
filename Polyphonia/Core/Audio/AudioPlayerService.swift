@@ -14,45 +14,44 @@ class AudioPlayerService: NSObject, ObservableObject {
     private var audioPlayer: AVAudioPlayer?
     
     @Published var isPlaying: Bool = false
-    @Published var currentlyPlayingURL: URL?
+//    @Published var currentlyPlayingURL: URL?
+    @Published var currentlyPlayingID: UUID?
     @Published var errorMessage: String?
     
     override init() {
         super.init()
     }
     
-    func play(url: URL) {
+    func play(idea: AudioIdea) {
         errorMessage = nil
-//        // If we are already playing this URL, just resume
-//        if let currentlyPlayingURL = currentlyPlayingURL, currentlyPlayingURL == url, let player = audioPlayer {
-//            if !player.isPlaying {
-//                player.play()
-//                isPlaying = true
-//            }
-//            return
-//        }
-        
-        let fileName = url.lastPathComponent
-        let currentURL = getDocumentsDirectory().appendingPathComponent(fileName)
-        
-        // Otherwise, stop current and start new
         stop()
         
+        // 1. Determine local path
+        let fileName = idea.id.uuidString + ".m4a"
+        let currentURL = getDocumentsDirectory().appendingPathComponent(fileName)
+        
+        // 2. Restore file from iCloud data if missing
+        if !FileManager.default.fileExists(atPath: currentURL.path) {
+            if let data = idea.audioData {
+                try? data.write(to: currentURL)
+            } else {
+                errorMessage = "Audio file not found."
+                return
+            }
+        }
+        
         do {
-            // Ensure session is active
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
             
             audioPlayer = try AVAudioPlayer(contentsOf: currentURL)
-//            audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.delegate = self
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
             
-            currentlyPlayingURL = url
+            currentlyPlayingID = idea.id
             isPlaying = true
         } catch {
-            print("Failed to play audio: \(error)")
             errorMessage = "Playback failed: \(error.localizedDescription)"
             stop()
         }
@@ -66,15 +65,15 @@ class AudioPlayerService: NSObject, ObservableObject {
     func stop() {
         audioPlayer?.stop()
         audioPlayer = nil
-        currentlyPlayingURL = nil
+        currentlyPlayingID = nil
         isPlaying = false
     }
     
-    func togglePlayPause(url: URL) {
-        if currentlyPlayingURL == url && isPlaying {
+    func togglePlayPause(idea: AudioIdea) {
+        if currentlyPlayingID == idea.id && isPlaying {
             pause()
         } else {
-            play(url: url)
+            play(idea: idea)
         }
     }
 }
