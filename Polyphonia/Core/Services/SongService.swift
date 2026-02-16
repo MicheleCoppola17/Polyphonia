@@ -17,6 +17,8 @@ class SongService {
     }
     
     func fetchSongs(searchString: String = "") throws -> [Song] {
+        modelContext.processPendingChanges()
+        
         let predicate = #Predicate<Song> { song in
             searchString.isEmpty ? true : song.title.localizedStandardContains(searchString)
         }

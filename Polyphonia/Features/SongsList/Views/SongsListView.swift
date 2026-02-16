@@ -39,6 +39,13 @@ struct SongsListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        viewModel.fetchSongs()
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
                         viewModel.isAddingSong = true
                     } label: {
                         Image(systemName: "plus")
